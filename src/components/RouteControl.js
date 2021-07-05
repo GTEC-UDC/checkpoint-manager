@@ -46,7 +46,7 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
 
 
     const handleClick = (event) => {
-       switch (event.target.name) {
+       switch (event.currentTarget.name) {
            case "checkpoint":
                let newPath = currentPath;
                let ts = Math.floor(Date.now() / 1000)
@@ -93,12 +93,16 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
                   });
                 break;
            default:
-               break;
+               break;      
        }
+       event.stopPropagation();
       };
   
+
+      const stopPropagation = (event) => {
+          event.stopPropagation();
+      };
     return (
-      <div>
         <Grid container direction="column" justify="center" alignItems="stretch">
           <Grid item>
         <Button
@@ -141,19 +145,21 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
             </Grid>
         </Grid> :       
         <Grid item>
-        <Button
-          variant="outlined"
-          color={colorButtonStart}
-          name={nameButtonStart}
-          onClick={handleClick}
-          className={classes.button}
-          size="small"
-        >
+          <span>
+          <Button
+            variant="outlined"
+            color={colorButtonStart}
+            name={nameButtonStart}
+            onClick={handleClick}
+            className={classes.button}
+            size="medium"
+          >
           {tagButtonStart}
-        </Button>
-        </Grid> }
+          </Button>
+          </span>
+        </Grid> 
+      }
 
         </Grid>
-      </div>
     );
   }
