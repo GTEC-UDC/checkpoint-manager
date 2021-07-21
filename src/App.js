@@ -16,7 +16,8 @@ import {
 function App() {
   const [userEmail, setUserEmail] = useState("");
   const [isLogged, setIsLogged] = useState(false);
- 
+  const [routeStarted, setRouteStarted] = useState(false);
+
   return (
     <Router>
         <Switch>
@@ -30,6 +31,8 @@ function App() {
           </Route>
           <Route path="/route">
             <RoutePage 
+            routeStarted={routeStarted}
+            setRouteStarted={setRouteStarted}
             isLogged={isLogged}
             setIsLogged={setIsLogged}
             />

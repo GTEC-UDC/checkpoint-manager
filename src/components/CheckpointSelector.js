@@ -17,9 +17,8 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 
-export default function CheckpointSelector({currentCheckpoints, setCurrentCheckpoint}) {
+export default function CheckpointSelector({currentCheckpoints, setCurrentCheckpoint, currentIndex, setCurrentIndex}) {
     const classes = useStyles();
-    const [currentIndex, setCurrentIndex] = useState(0);
 
     const handleChange = (event) => {
         setCurrentIndex(event.target.value);

@@ -15,22 +15,13 @@ const useStyles = makeStyles((theme) => ({
   }));
 
   
-export default function RouteControl({routeStarted, setRouteStarted, currentRoute, currentCheckpoints, currentCheckpoint, setCurrentCheckpoint}) {
+export default function RouteControl({routeStarted, setRouteStarted, currentRoute, 
+  currentCheckpoints, currentCheckpoint, setCurrentCheckpoint,
+  currentPath, setCurrentPath, indexCheckpoint, setIndexCheckpoint,
+  currentIndex, setCurrentIndex,showConfirmStop, setShowConfirmStop, reachedEndRoute, setReachedEndRoute}) {
+
     const classes = useStyles();
     let history = useHistory ();
-    const [currentPath, setCurrentPath] = useState({routeTag:currentRoute.tag, checkpoints:[]});
-    const [indexCheckpoint, setIndexCheckpoint] = useState(currentCheckpoint.index);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [showConfirmStop, setShowConfirmStop] = useState(false);
-
-    useEffect(() => {
-        if (!routeStarted){
-            setIndexCheckpoint(currentCheckpoint.index);
-            setCurrentIndex(0);
-            //setCurrentPath({routeTag:currentRoute.tag, routeId:currentRoute._id, checkpoints:[]});
-        }
-    }, [currentCheckpoint, routeStarted, currentRoute]);
-
 
     let tagButtonStart, colorButtonStart, nameButtonStart;
 
@@ -47,32 +38,10 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
 
     const handleClick = (event) => {
        switch (event.currentTarget.name) {
-           case "checkpoint":
-               let newPath = currentPath;
-               let ts = Math.floor(Date.now() / 1000)
-              newPath.routeTag = currentRoute.tag;
-              newPath.routeId = currentRoute._id;
-               let floor = currentCheckpoints[indexCheckpoint].floor ? currentCheckpoints[indexCheckpoint].floor : "";
-               newPath.checkpoints[currentIndex] = {
-                 tag:currentCheckpoints[indexCheckpoint].tag, 
-                 x:currentCheckpoints[indexCheckpoint].x,
-                 y:currentCheckpoints[indexCheckpoint].y,
-                 floor:floor,
-                 timestamp:ts};
-               setCurrentPath(newPath);
-               if ((indexCheckpoint + 1) >= currentCheckpoints.length){
-                  setRouteStarted(false);
-                  setShowConfirmStop(true);
-                  setCurrentCheckpoint({point:{tag:"END", x:0, y:0, floor:"-"}, index:0});
-               } else {
-                  setCurrentIndex(currentIndex+1);
-                  setIndexCheckpoint(indexCheckpoint + 1);
-                  setCurrentCheckpoint({point:currentCheckpoints[indexCheckpoint + 1], index:indexCheckpoint + 1});
-               }
-
-               break;
             case "start":
+                setReachedEndRoute(false);
                 setRouteStarted(true);
+
                 break;
             case "stop":
                 setShowConfirmStop(true);
@@ -81,11 +50,13 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
                  setShowConfirmStop(false);
                 break;
             case "confirm_stop":
+                setReachedEndRoute(false);
                 setRouteStarted(false);
                 setShowConfirmStop(false);
                 client.service('paths').create(currentPath).then(() => {
                     console.log("Path saved");
                     setCurrentPath({routeTag:currentRoute.tag, routeId:currentRoute._id, checkpoints:[]});
+                    setCurrentCheckpoint({point:currentRoute.points[0], index:0});
                   }).catch((err) => {
                       //Maybe not authentication
                       history.push("/");
@@ -102,36 +73,11 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
       const stopPropagation = (event) => {
           event.stopPropagation();
       };
-    return (
-        <Grid container direction="column" justify="center" alignItems="stretch">
-          <Grid item>
-        <Button
-          variant="contained"
-          color="primary"
-          className={classes.buttonCheckpoint}
-          onClick={handleClick}
-          name="checkpoint"
-          fullWidth
-          size="large"
-          disabled={!routeStarted}
-        >
-          Checkpoint
-        </Button>
-        </Grid>
 
-        { showConfirmStop ? 
-        <Grid container direction="row" justify="center" alignItems="center">
-            <Grid item>
-                <Button
-                variant="outlined"
-                color="primary"
-                name="cancel"
-                onClick={handleClick}
-                className={classes.button}
-                >
-                Cancel
-                </Button>
-            </Grid>
+
+      if (showConfirmStop && reachedEndRoute){
+        return (
+          <Grid container direction="column" justify="center" alignItems="stretch">
             <Grid item>
                 <Button
                 variant="outlined"
@@ -140,10 +86,42 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
                 onClick={handleClick}
                 className={classes.button}
                 >
-                Yes, stop
+                Stop
                 </Button>
-            </Grid>
-        </Grid> :       
+              </Grid>
+          </Grid>);
+      };
+
+      if (showConfirmStop){
+        return (
+        <Grid container direction="row" justify="center" alignItems="center">
+        <Grid item>
+            <Button
+            variant="outlined"
+            color="primary"
+            name="cancel"
+            onClick={handleClick}
+            className={classes.button}
+            >
+            Cancel
+            </Button>
+        </Grid>
+        <Grid item>
+            <Button
+            variant="outlined"
+            color="secondary"
+            name="confirm_stop"
+            onClick={handleClick}
+            className={classes.button}
+            >
+            Yes, stop
+            </Button>
+        </Grid>
+    </Grid>);
+      };
+
+    return (
+        <Grid container direction="column" justify="center" alignItems="stretch">
         <Grid item>
           <span>
           <Button
@@ -158,8 +136,6 @@ export default function RouteControl({routeStarted, setRouteStarted, currentRout
           </Button>
           </span>
         </Grid> 
-      }
-
         </Grid>
     );
   }
